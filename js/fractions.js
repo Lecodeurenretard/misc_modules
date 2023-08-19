@@ -130,16 +130,40 @@ class Fraction{
         
             return new Fraction(num, deno);
     }
+
+    /**
+     * Multiplie la fraction avec un autre nombre
+     * @param {Fraction} f La fraction
+     * @param {Number} x  le nombre
+     * @returns {Fraction} Le résultat du produit
+     */
+    static multiplyNumber(f, x){
+        return new Fraction(f.#numerateur*x,  f.#denominateur);
+    }
+
+    /**
+     * La version in-object de Fraction.multiplyNumber()
+     * @param {Number} x le nombre à multiplier avec la fraction.
+     * @param {Boolean} set Si la fraction doit se régler au résultat
+     * @returns {Fraction} Le résultat de l'opération.
+     */
+    multiplyNumber(x, set=true){
+        const num = x * this.#numerateur;
+        if (set) {
+            this.#numerateur = num;
+        }
+        return new Fraction(num, this.#denominateur);
+    }
     
-    /*
+    /** 
      * Ajoute deux fractions
      * @param {Fraction} f1 
      * @param {Fraction} f2
      * @returns {Fraction} 
-     
+    */
     static add(f1, f2){
-        denominateur
-    }*/
+        f1.#denominateur
+    }
 
 }
 //export {Fraction};
