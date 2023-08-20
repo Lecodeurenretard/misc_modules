@@ -4,7 +4,7 @@
 class Fraction{
     #numerateur = 1;
     get #denominateur(){
-        return this.#denominateur;
+        return this.denominateur;
     }
     /**
      * set le dénominateur
@@ -13,7 +13,7 @@ class Fraction{
     set #denominateur(int){
         int = Math.round(int);  //une fraction doit avoir des thermes entiers
         if(int != 0){
-            this.#denominateur = int;
+            this.denominateur = int;
         }else{
             throw "Erreur, dénominateur à essayé d'être mis à 0"
         }
@@ -40,7 +40,7 @@ class Fraction{
         }
 
         this.#numerateur = numerateur;
-        this.denominateur = denominateur;
+        this.#denominateur = denominateur;
     }
     
     /**
@@ -53,7 +53,7 @@ class Fraction{
         
         if (set) {
             this.#numerateur = f.#numerateur;
-            this.denominateur = f.#denominateur;
+            this.#denominateur = f.#denominateur;
         }
         return f;
     }
@@ -65,6 +65,7 @@ class Fraction{
     /*set(fraction){
 
     }*/
+    
 
     /**
      * Simplifie un objet fraction (enlève les dénominateurs communs)
@@ -73,7 +74,7 @@ class Fraction{
      */
     static simplifier(fraction){
         const factNum = Mathemathics.decomposer(fraction.#numerateur),
-            factDeno = Mathemathics.decomposer(fraction.denominateur),
+            factDeno = Mathemathics.decomposer(fraction.#denominateur),
             factNumFinal = [1],
             factDenoFinal = [1];
         
@@ -90,10 +91,25 @@ class Fraction{
             }
         });
 
-        const num = Mathemathics.produit(factNumFinal),
-            deno = Mathemathics.produit(factDenoFinal);
+        const num = Mathemathics.produitTab(factNumFinal),
+            deno = Mathemathics.produitTab(factDenoFinal);
         
         return new Fraction(num, deno);
+    }
+
+    /**
+     * Simlifie la Fraction courante.
+     * @param {Boolean} set Si la Fraction courante doit être mise à sa version simplifée.
+     * @returns {Fraction} La Fraction mais avec ses deux thermes premires entre eux.
+     */
+    simplifier(set = true){
+        const f = Fraction.simplifier(this);
+        if (set) {
+            this.#numerateur = f.#numerateur;
+            this.#denominateur = f.#denominateur;
+        }
+        
+        return f;
     }
 
     /**
@@ -128,7 +144,41 @@ class Fraction{
         const num = f1.#numerateur * f2.#numerateur,
             deno = f1.denominateur * f2.denominateur;
         
-            return new Fraction(num, deno);
+        return new Fraction(num, deno);
+    }
+
+    /**
+     * La version in-object de Fraction.multiply(). Multiplie deux Fractions.
+     * @param {Fraction} f La fraction à multiplier à this.
+     * @param {Boolean} set Si la fraction doit être mise à ce qu'elle retourne.
+     * @returns {Fraction} Le produit de this et de f.
+     */
+    multiply(f, set = true){
+        const fFinal = Fraction.multiply(this, f);
+        if (set) {
+            this.#numerateur = fFinal.#numerateur;
+            this.#denominateur = fFinal.#denominateur;
+        }
+        return fFinal;
+    }
+
+    /**
+     * Multiplie les deux membres de la fraction tel que pour toute Fraction f = a/b: f = f.multiplyEqual(c) = ac/bc
+     * @param {Number} x Un nombre entier, si il ne l'est pas il sera arrondit
+     * @param {Boolean} set Si true,  met la fraction de laquelle la méthode est appelée à ce qu'elle retourne.
+     * @returns {Fraction} La fraction avec x de multiplié sur chaque membre
+     */
+
+    multiplyEqual(x, set  = false){
+        x = Math.round(x);
+        const num = x * this.#numerateur,
+            deno = x * this.#denominateur;
+
+        if (set) {
+            this.#numerateur = num;
+            this.#denominateur = deno;
+        }
+        return new Fraction(num, deno);
     }
 
     /**
@@ -162,7 +212,56 @@ class Fraction{
      * @returns {Fraction} 
     */
     static add(f1, f2){
-        f1.#denominateur
+        
+
+        
+    }
+
+    /**
+     * Met les deux fractions sur le même dénominateur.
+     * @param {Fraction} f1 La 1ere fraction
+     * @param {Fraction} f2 La 2e fraction
+     * @returns {Fraction[]} Les deux fractions sur le même dénominateur. [0] correspond à f1 et [1] correspond à f2.
+     */
+    static setOnSameDeno(f1, f2){
+        const f1deno = f1.#denominateur,
+            f2deno = f2.#denominateur,
+            F1 = f1.multiplyEqual(f2deno),    //on met les deux fractions à 
+            F2 = f2.multiplyEqual(f1deno);
+
+        return [F1, F2];
+    }
+
+    /**
+     * La version in-object de Fraction.setOnSameDeno(). Met la Fraction courante et f sur le même dénominateur.
+     * @param {Fraction} f La deuxième fraction.
+     * @param {Boolean} set Si la Fraction courante doit être set à son équivalent.     
+     * @returns {Fraction[]} Les deux fractions sous la forme d'une liste.
+     */
+    setOnSameDeno(f, set = true){
+        const FList = Fraction.setOnSameDeno(this, f);
+        if (set) {
+            this.#numerateur = FList[0].#numerateur;
+            this.#denominateur = FList[0].#denominateur;
+        }
+        return FList;
+    }
+
+    /**
+     * Change le dénominateur de la Fraction, tel que pour toute Fraction f, et entier m, f = f.changeDeno(m)
+     * @param {Number} n Le dénominateur, Il sera arrondit au plus proche (unité près)
+     * @param {Boolean} set Si la Fraction doit se set à ce qu'elle retourne.
+     * @param {Boolean} notInterger Permet au dénominateur d'être arrondis par le constructeur de Fraction.
+     * @returns {Fraction} La Fraction sous un dénominateur n. Si la fraction n'a pas de dénominateur entier, retourne this.
+     */
+    changeDeno(n, set = false, notInterger = false){
+        n = Math.round(n);
+        const newNum = this.#numerateur * n/this.#denominateur; //règle de trois,produit en croix, ...
+        
+        if (!Number.isInteger(newNum) && !notInterger) {
+            return this;
+        }
+        return new Fraction(newNum, n);
     }
 
 }

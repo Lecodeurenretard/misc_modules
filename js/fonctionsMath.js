@@ -108,11 +108,13 @@ class Mathemathics{
      * @returns {Number[]} La liste des facteurs de x, si x n'est pas entier retourne un tableau vide.
      */
     static decomposer(x) {          //Fonction adaptée de chatGPT
+        const neg = (x < 0);
+        
         if (x==1 || x==0) {
             return  [x]
         }
         if (x < 0) {
-            const neg = true;
+            
             x = abs(x);
         }
         if (!Number.isInteger(x)) {
@@ -163,10 +165,25 @@ class Mathemathics{
     }
 
     /**
+     * Multiplie tous les x.
      * @param  {...Number} x Les nombres à multiplier
      * @returns {Number} Le produit de tout les x
      */
-    static produit(...x){
+    static produitParam(...x){
+        let product = 1;
+        x.forEach(xn => {
+            product *= xn
+        });
+
+        return product;
+    }
+
+    /**
+     * Multiplie les éléments de x.
+     * @param {Number[]} x Les nombres à multiplier
+     * @returns {Number} Le produit de tout les x
+     */
+    static produitTab(x){
         let product = 1;
         x.forEach(xn => {
             product *= xn
