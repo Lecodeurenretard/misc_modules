@@ -1,6 +1,8 @@
 //import { Mathemathics } from "fonctionsMath.js";
 
-
+/**
+ * Représente une fraction.
+ */
 class Fraction{
     #numerateur = 1;
     get #denominateur(){
@@ -57,14 +59,6 @@ class Fraction{
         }
         return f;
     }
-
-    /*
-     * 
-     * @param {*} fraction 
-     */
-    /*set(fraction){
-
-    }*/
     
 
     /**
@@ -132,6 +126,10 @@ class Fraction{
      */
     static ToNumber(fraction){
         return fraction.#numerateur / fraction.denominateur;
+    }
+    
+    ToNumber(){
+        return this.#numerateur / this.#denominateur;
     }
 
     /**
@@ -262,6 +260,55 @@ class Fraction{
             return this;
         }
         return new Fraction(newNum, n);
+    }
+
+    /**
+     * Compare deux fractions
+     * @param {Fraction} f1 1ere fraction
+     * @param {Fraction} f2 2e fraction
+     * @returns {Boolean} Si les deux fractions sont égales
+     */
+    static equals(f1, f2){
+        const F1 = f1.ToNumber(),
+            F2 = f2.ToNumber();
+
+        return (F1 < F2);
+    }
+
+    /**
+     * Compare deux fractions strictement (Prend en compte les thermes indépendament: 1/3 != 3/9)
+     * @param {Fraction} f1 
+     * @param {Fraction} f2 
+     * @returns {Boolean} Si les deux fractions sont strictement égales
+     */
+    static strictEquals(f1, f2){
+        return (f1.#numerateur == f2.#numerateur && f1.#denominateur == f2.#denominateur);
+    }
+
+    /**
+     * Compare deux fractions
+     * @param {Fraction} f1 1ere fraction
+     * @param {Fraction} f2 2e fraction
+     * @returns {Boolean} Si f1 > f2
+     */
+    static greater(f1, f2){
+        const F1 = f1.ToNumber(),
+            F2 = f2.ToNumber();
+
+        return (F1 < F2);s
+    }
+
+    /**
+     * Compare deux fractions
+     * @param {Fraction} f1 1ere fraction
+     * @param {Fraction} f2 2e fraction
+     * @returns {Boolean} Si f1 < f2
+     */
+    static lower(f1, f2){
+        const F1 = f1.ToNumber(),
+            F2 = f2.ToNumber();
+
+        return (F1 < F2);
     }
 
 }
