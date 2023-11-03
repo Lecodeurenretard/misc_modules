@@ -498,9 +498,10 @@ class Complexe{
     /**
      * Elève this à la puissance n via la méthode récursive (z^5 = z*z*z*z*z).
      * @param {Number | Relatif} n La puissance à laquelle élever this.
+     * @param {Boolean} set=true |  Si this doit changer de valeur pour être égal au résultat
      * @returns {Complexe | undefined | Number} Renvoie undefined si n n'est pas entier, NaN si ce n'est pas un nombre
      */
-    nthPower(n){
+    nthPower(n, set=true){
         if (n instanceof Relatif ||n instanceof Naturel) {
             n = n.value
         }else if(n instanceof abstractNumber || n instanceof Complexe){
@@ -517,7 +518,7 @@ class Complexe{
         const base = this;
         if (n > 0) {
             for (let i = 0; i < n; i++) {       //J'utilise la formule récursive car je ne suis pas sur que (a^b)^c = a^(bc) marche dans les complexes
-                this.multiply(base, true);
+                this.multiply(base, set);
             }
 
             return this;
@@ -531,11 +532,11 @@ class Complexe{
 
     /**
      * Elève z à la puissance x sans la méthode récursive (z^x = |z|^x * e^(ix * arg[z]) )
-     * @param {Complexe} z 
-     * @param {Number | Reel} x 
-     * @param {Boolean} set 
+     * @param {Complexe} z Le complexe devant être élevé.
+     * @param {Number | Reel} x La puissance
+     * @returns {Complexe}
      */
-    static exponent(z, x, set){
+    static exponent(z, x){
         if (x instanceof abstractNumber) {
             x = x.value
         }
@@ -562,6 +563,21 @@ class Complexe{
         Je rappelle la forme exponentielle d'un nombre complexe: 
         z = re^(iθ) avec r = |z|, θ = arg(z), i = √-1 et e ≈ 2.72
         */
+    }
+
+     /**
+     * Elève z à la puissance x sans la méthode récursive (z^x = |z|^x * e^(ix * arg[z]) )
+     * @param {Boolean} set Si l'on doit set this au résultat
+     * @param {Number | Reel} x Le nombre en haut de la puisance.
+     * @param {Complexe}
+     */
+    exponent(x, set = true){
+        const result = Complexe.exponent(this, x);
+        if (set) {
+            this.setTo(result);
+        }
+
+        return result;
     }
 
     /**

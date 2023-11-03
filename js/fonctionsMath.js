@@ -13,23 +13,26 @@ class Mathemathics{
     }
 
     /**
-     * Vérifie si x est premier (n'ayant que 1 et lui-même pour diviseur dans N) 
-     * @param {Number} x  Le nombre à tester.
-     * @returns {Boolean | undefined} Si le nombre est premier, si x n'est pas entier retourne undefined
+     * Vérifie si x est premier (n'ayant que 1 et lui-même pour diviseur dans Z) 
+     * @param {Number} x  Le nombre à tester, doit être < 3721.
+     * @returns {Boolean | undefined} Si le nombre est premier, si x n'est pas entier retourne undefined. La fonction renvoie null si x > 3721
      */
 
     static isPremier(x){
         if (!Number.isInteger(x)) {
             return undefined;
         }
-        x = Math.abs(x) //si x est négatif
         
-        if (x==1) {
+        if (x <= 1 || x == 3721) {        //tous les entiers ≤ 1 sont soit multiple de -1, soit 1, soit 0 => non premiers. Et 3721 = 61²
             return false;
         }
 
-        numbers = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-        if (numbers.includes(x)) {return true;}
+        if (x > 3721) { //la liste permet de trouver seulement jusqu'à là
+            return null;
+        }
+
+        numbers = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59];
+        if (numbers.includes(x) || x == 61) {return true;}
         numbers.forEach(premier => {
             if ((numbers % premier) == 0) {
                 return false;
@@ -186,7 +189,7 @@ class Mathemathics{
     }
 
     /**
-     * Récupère tous les n entiers dans x (si x = n² + 2 alors getNFactors(x, n) = 2)
+     * Récupère tous les n entiers dans x (si x = n² + 6 alors getNFactors(x, n) = 2)
      * @param {Number} x 
      * @param {Number} n 
      * @returns {Number}
@@ -342,14 +345,12 @@ class Mathemathics{
     }
 
     /**
-     * Calcule la factorielle de n SANS la fonction Gamma
-     * @param {Int} n
+     * Calcule la factorielle de n avec la méthode récursive
+     * @param {Number | Relatif} n
      * @returns {Number} La factorielle du nombre
      */
     static factorial(n){
-        if (n==0) {
-            return 1;
-        }
+        
         if(n==Number.NEGATIVE_INFINITY){
             return undefined;
         }
@@ -357,7 +358,13 @@ class Mathemathics{
         if(n==Number.POSITIVE_INFINITY){
             return Number.POSITIVE_INFINITY;
         }
+        if (n instanceof Relatif || n instanceof Naturel) {
+            n = n.value
+        }
 
+        if (n==0) {
+            return 1;
+        }
         for (let m = 1; m <= n; m++) {
              n *= m;
         }
@@ -409,7 +416,26 @@ class Mathemathics{
             return x;
     }
 
-    
+    /**
+     * Une fonction puissance (u^x)
+     * @param {Complexe | Reel | Number} u La base
+     * @param {Reel | Number} x Le nombre en haut.  
+     * @returns {Number}
+     */
+    static expodentielle(u, x){
+        if (u instanceof abstractNumber) {
+            u = u.value;
+        }
+        if (x instanceof abstractNumber) {
+            x = x.value;
+        }
+
+        if (!Number.isNaN(u)) {
+            return u**x;            //si réel
+        }
+
+        return Complexe.exponent(u, x); //si complexe
+    }
 }
 
 //export {Mathemathics}
