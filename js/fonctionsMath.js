@@ -13,28 +13,6 @@ class Mathemathics{
     }
 
     /**
-    * Convertit les degrés en radians.
-    * @param {Number} angle number L'angle devant être convertit (doit être en degré).
-    * @param {Boolean} coef Si true, la fonction ne retournera que le coefficient. On peut donc écrire pour tout a (avec cette fonction représentée par f()): f(a) = π*f(a, true)
-    * @returns {Number}  L'équivalent en radian.
-    */
-    static ConvertToRadian(angle, coef=false){
-        if (coef) {
-            angle *= Math.PI
-        }
-        return angle/ 180
-    }
-
-        /**
-        * Convertit les radians en degrés.
-        * @param {Number} angle number L'angle devant être convertit (doit être en radian).
-        * @returns number  L'équivalent en degré.
-        */
-    static ConvertToDegree(angle){
-        return angle * 180 /Math.PI
-    }
-
-    /**
      * Vérifie si x est premier (n'ayant que 1 et lui-même pour diviseur dans N) 
      * @param {Number} x  Le nombre à tester.
      * @returns {Boolean | undefined} Si le nombre est premier, si x n'est pas entier retourne undefined
@@ -101,34 +79,114 @@ class Mathemathics{
 
     /**
      * La racine n ième de x (opération inverse de x^n) (ex: NthRoot(27, 3) = 3 car 3^3 = 27 ou NthRoot(16, 4) = 2 car 2^4 = 16)
-     * @param {Number} x Le nombre sous la racine.
-     * @param {Number} n L'exposant à enlever
+     * @param {Number | Reel | Complexe} x Le nombre sous la racine.
+     * @param {Number | Reel} n L'exposant à enlever
      */
     static NthRoot(x, n){
-        return x**(1/n)
+       
+        return x**(1/n);
+        
     }
+
     /**
-     * Récupère tous les 2 entiers dans x tel que : 2^get2Factors(x) *k = x
+     * La racine carrée complexe de x.
+     * @param {Complexe | Reel | Number} x La radicande.
+     * @returns {Complexe | Number} Le résultat de l'opération; retourne autant que possible un Number mais si x < 0 || x ∈ C, la fonction retournera un objet Complexe.
+     */
+    static sqrt(x){
+        if(x instanceof abstractNumber){    //c'est un réel
+            return Mathemathics.sqrt(x.value);
+        }
+
+        if (x instanceof Complexe) {
+            return (new Complexe(1, 0)).initExpo(Mathemathics.sqrt(x.module), x.arg/2); //sqrt(re^(iθ)) = e^(iθ/2) * sqrt(r)
+            //on ne risque pas de faire une récursivité infinie car le module est réel.
+        }
+ 
+        if (x < 0) {   
+            return new Complexe(0, Math.sqrt(x));   //sqrt(-1) = 0 + i
+        }
+        return Math.sqrt(x);
+    }
+
+    /**
+     * Prend le sinus d'un angle x.
+     * @param {Reel | Number | Angle} x 
+     * @param {String} unite L'unitée de l'angle
+     * @returns {Number}
+     */
+    static sin(x, unite){
+        const y = Mathemathics.prepTrigFunct(x, unite);
+
+        return Math.sin(y);
+    }
+
+    /**
+     * Prend le cosinus d'un angle x.
+     * @param {Reel | Number | Angle} x 
+     * @param {String} unite L'unitée de l'angle
+     * @returns {Number}
+     */
+    static cos(x, unite){
+        const y = Mathemathics.prepTrigFunct(x, unite);
+
+        return Math.cos(y);
+    }
+
+    static tan(x, unite){
+        const y = Mathemathics.prepTrigFunct(x, unite);
+
+        return Math.tan(y);
+    }
+
+    /**
+     * Prépare le nombre/objet x à être entrer dans une fonction de Math. | 
+     * exemple: let y = prepTrigFunct(90, "degree"); 
+     * Math.sin(y); //== 1
+     * @param {Reel | Number | Angle} x 
+     * @param {String} unite L'unité de x (les seules unités acceptées sont "radian" et "degree")
+     * @returns {Number | null} Retourne le nombre ou null si l'unité n'est pas bonne.
+     */
+    static prepTrigFunct(x, unite){
+        
+        if (x instanceof abstractNumber) { 
+            x = x.value;
+        }else if(x instanceof Angle){
+            x = x.convertToRadian().value;
+            unite = "radian"
+        }
+
+        if (unite == "degree") {
+            x = Angle.ConvertToRadian(x)
+        }else if(unite != "radian"){
+            return null;
+        }
+        
+        return x;
+    }
+
+    /**
+     * Récupère tous les 2 entiers dans x
      * @param {Number} x Le nombre (Il sera arrondit au plus proche)
      * @returns {Number}
      */
     static get2Factors(x){
-        x = Math.round(x);
+        x = Mathemathics.round(x);
         return Math.floor(Math.log2(x));
     }
 
     /**
-     * Récupère tous les 10 entiers dans x tel que : 10^get2Factors(x) *k = x
+     * Récupère le nombre de 10 entiers dans x 
      * @param {Number} x Le nombre (Il sera arrondit au plus proche)
      * @returns {Number}
      */
     static get10Factors(x){
-        x = Math.round(x);
+        x = Mathemathics.round(x);
         return Math.floor(Math.log10(x));
     }
 
     /**
-     * Récupère tous les n entiers dans x tel que : n^get2Factors(x) *k = x
+     * Récupère tous les n entiers dans x (si x = n² + 2 alors getNFactors(x, n) = 2)
      * @param {Number} x 
      * @param {Number} n 
      * @returns {Number}
@@ -140,11 +198,14 @@ class Mathemathics{
 
     /**
      * Décompose un nombre x.
-     * @param {Number} x Le nombre à décomposer
-     * @returns {Number[]} La liste des facteurs de x, si x n'est pas entier retourne un tableau vide.
+     * @param {Number | Relatif} x Le nombre (entier) à décomposer
+     * @returns {Number[]} La liste des facteurs de x, si x n'est pas entier retourne un tableau vide; si x tend vers ∓∞, la fonction retourne undefined.
      */
-    static decomposer(x) {          //Fonction adaptée de chatGPT
-        if(x == Number.NEGATIVE_INFINITY || x == Number.POSITIVE_INFINITY){
+    static decomposer(x) {         //Fonction adaptée de chatGPT
+        if (x instanceof abstractNumber) {
+            x = x.value;
+        }
+        if(Mathemathics.isInf(x)){
             return undefined;
         }
 
@@ -303,26 +364,49 @@ class Mathemathics{
         return n;
     }
 
-    /**
+     /**
      * Coupe le nombre à sa accuracy-ième décimale.  (ex: truncFloat(Math.PI) = 3.141)
      * @param {Number} x Le nombre de base.
-     * @param {Number} accuracy La décimale où il faut couper
-     * @returns {Number} Le nombre sans 
+     * @param {Number} accuracy = 3 | La décimale où il faut couper.
+     * @returns {Number}
      */
-    static truncFloat(x, accuracy = 3){
+     static truncFloat(x, accuracy = 3){
         if (accuracy == Number.POSITIVE_INFINITY) {
             return x;         //Le résultat sera x avec le maximum de décimales qu'il puisse avoir donc lui-même
         }
 
         if (accuracy == Number.NEGATIVE_INFINITY) {
-            return 0;       //on considère que dans ce cas le résultat est négligeable
+            return 0;       //on considère que dans ce cas le résultat est négligeable (v. le prochain commentaire)
         }
 
-        x *= 10**accuracy;      //comme la ligne à gauche existe, on peut calculer x avec des limites, ce qui donne 0
+        x *= 10**accuracy;      //comme la ligne à gauche existe, on peut calculer x avec accuracy tendant vers -inf , ce qui donne 0
         x = Math.trunc(x);
         x /= 10**accuracy;
 
         return x;
+    }
+
+    /**
+     * Arrondis le nombre à sa accuracy-ième décimale.  (ex: Math.E ≈ 2.718;  round(Math.E, 2) = 2.72)
+     * @param {Number} x Le nombre de base.
+     * @param {Number} accuracy = 3 | La décimale où il faut arrondir.
+     * @returns {Number}
+     */
+    static round(x, accuracy = 3){
+            if (accuracy == Number.POSITIVE_INFINITY) {
+                return x;         //Le résultat sera x avec le maximum de décimales qu'il puisse avoir donc lui-même
+            }
+    
+            if (accuracy == Number.NEGATIVE_INFINITY) {
+                return 0;       //on considère que dans ce cas le résultat est négligeable (v. le prochain commentaire)
+            }
+            //comme la ligne en bas existe, on peut calculer x avec des limites, ce qui donne 0
+            
+            x *= 10**accuracy;   
+            x = Math.round(x);
+            x /= 10**accuracy;
+    
+            return x;
     }
 
     
