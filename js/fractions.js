@@ -138,12 +138,14 @@ class Fraction{
 
     /**
      * Multiplie les deux membres de la fraction tel que pour toute Fraction f = a/b: f = f.multiplyEqual(c) = ac/bc
-     * @param {Number} x Un nombre entier, si il ne l'est pas il sera arrondit
+     * @param {Number | Reel} x Un nombre entier, si il ne l'est pas il sera arrondit
      * @param {Boolean} set Si true,  met la fraction de laquelle la méthode est appelée à ce qu'elle retourne.
      * @returns {Fraction} La fraction avec x de multiplié sur chaque membre
      */
 
     multiplyEqual(x, set  = false){
+        if (x instanceof abstractNumber) {x = x.value;}
+       
         x = Math.round(x);
         const num = x * this.numerateur,
             deno = x * this.denominateur;
@@ -167,11 +169,13 @@ class Fraction{
 
     /**
      * La version in-object de Fraction.multiplyNumber()
-     * @param {Number} x le nombre à multiplier avec la fraction.
+     * @param {Number | Reel} x le nombre à multiplier avec la fraction.
      * @param {Boolean} set Si la fraction doit se régler au résultat
      * @returns {Fraction} Le résultat de l'opération.
      */
     multiplyNumber(x, set=true){
+        if (x instanceof abstractNumber) {x = x.value;}
+
         const num = x * this.numerateur;
         if (set) {
             this.numerateur = num;
@@ -186,9 +190,9 @@ class Fraction{
      * @returns {Fraction} 
     */
     static add(f1, f2){
-        
+        const add = Fraction.setOnSameDeno(f1, f2);
 
-        
+        return Fraction(add[0].numerateur + add[1].numerateur, add[1].denominateur);
     }
 
     /**
@@ -209,7 +213,7 @@ class Fraction{
     /**
      * La version in-object de Fraction.setOnSameDeno(). Met la Fraction courante et f sur le même dénominateur.
      * @param {Fraction} f La deuxième fraction.
-     * @param {Boolean} set Si la Fraction courante doit être set à son équivalent.     
+     * @param {Boolean} set=true | Si la Fraction courante doit être set à son équivalent.     
      * @returns {Fraction[]} Les deux fractions sous la forme d'une liste.
      */
     setOnSameDeno(f, set = true){
@@ -224,8 +228,8 @@ class Fraction{
     /**
      * Change le dénominateur de la Fraction, tel que pour toute Fraction f, et entier m, f = f.changeDeno(m)
      * @param {Number} n Le dénominateur, Il sera arrondit au plus proche (unité près)
-     * @param {Boolean} set Si la Fraction doit se set à ce qu'elle retourne.
-     * @param {Boolean} notInterger Permet au dénominateur d'être arrondis par le constructeur de Fraction.
+     * @param {Boolean} set=false | Si la Fraction doit se set à ce qu'elle retourne.
+     * @param {Boolean} notInterger=false | Permet au dénominateur d'être arrondis par le constructeur de Fraction.
      * @returns {Fraction} La Fraction sous un dénominateur n. Si la fraction n'a pas de dénominateur entier, retourne this.
      */
     changeDeno(n, set = false, notInterger = false){
