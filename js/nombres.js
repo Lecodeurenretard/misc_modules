@@ -1,3 +1,5 @@
+//import { Mathemathics } from "fonctionMath.js";
+
 //Les classes qui vont suivre représentent les ensembles de nombres.
 
 //import { Mathemathics } from "fonctionsMath.js";
@@ -24,7 +26,7 @@ class abstractNumber {
      * @returns {Boolean} Si x appartient à R
      */
     static isPartOfThis(x){
-        return (!Mathemathics.isInf(x) && !Number.isNaN(x) && !Complexe.isPartOfThis(x))
+        return (!(Mathemathics.isInf(x) || Number.isNaN(x) || !(x instanceof Complexe )))
     }
 
     toNumber(){
@@ -79,7 +81,7 @@ class Naturel  extends abstractNumber{
      * @returns {Boolean} Si x appartient à N
      */
     static isPartOfThis(x){ //Je l'ai nommé comme ceci à cause de l'héritage
-        return (Number.isInteger(x) && x >= 0);
+        return (abstractNumber.isPartOfThis(x) && Number.isInteger(x) && x >= 0);
     }
 
     /**
@@ -88,7 +90,7 @@ class Naturel  extends abstractNumber{
      * @returns {Naturel} x convertit en Naturel (si le x est Complexe, seule la partie réelle sera prise)
      */
     static toThis(x){
-        if (Complexe.isPartOfThis(x)) {
+        if (x instanceof Complexe ) {
             x = x.real;
         }
 
@@ -105,25 +107,28 @@ class Naturel  extends abstractNumber{
 class Relatif extends abstractNumber{
     constructor(a){
         super(a);
-
-        const A = a.toString(10);
         
-         if (Complexe.isPartOfThis(a)) {    //si c'est un complexe
-            a = a.real;
-        }else if (!Number.isInteger(a)) {
-            a = Math.round(a);
+        if (!Number.isInteger(a)) {
+            a = Mathemathics.round(a);
         }
-
+        this.value = a;
         
     }
 
     /**
      * Si x appartient à Z 
-     * @param {*} x L'élément testé.
+     * @param {Number | Reel | Complexe} x L'élément testé.
      * @returns {Boolean} Si x appartient à Z
      */
-    static isPartOfThis(x,){
-        return (Number.isInteger(x))
+    static isPartOfThis(x){
+        if (x instanceof abstractNumber) {
+            x = x.value
+        }
+        if (x instanceof Complexe) {
+            return false;
+        }
+
+        return (abstractNumber.isPartOfThis(x) || Number.isInteger(x))
     }
 
     /**
@@ -132,11 +137,11 @@ class Relatif extends abstractNumber{
      * @returns {Relatif} x convertit en Relatif (si le x est Complexe, seule la partie réelle sera prise)
      */
     static toThis(x){
-        if (!Complexe.isPartOfThis(x)) {
-            return Math.round(x);
+        if (!(x instanceof Complexe)) {
+            return Mathemathics.round(x);
         }
 
-        return Math.round(x.real);
+        return Mathemathics.round(x);
     }
 }
 
@@ -197,33 +202,32 @@ class Reel extends abstractNumber{
 
     /**
      * Si x appartient à R 
-     * @param {Number} x Le nombre testé.
-     * @param {Boolean} starred Si true, l'ensemble testé est R*. Par défaut sur false
+     * @param {*} x L'élément testé.
      * @returns {Boolean} Si x appartient à R
      */
-    static isPartOfThis(x, starred = false){
-        let star = true;
-        if (starred) {
-            star = (x !=0);
-        }
-
-        return (!Mathemathics.isInf(x) && !Number.isNaN(x) && star)
+    static isPartOfThis(x){
+        return abstractNumber.isPartOfThis(x)
     }
 
 
     /**
      * Convertit x en Réel
      * @param {Number} x Le nombre à être convertit.
-     * @returns {Reel | Number} Si x appartient à R ou tends vers ∓∞
+     * @returns {Reel | Number} Si x est complexe, ne prend en compte que la partie négative
      */
     static toThis(x){
         
         if(Reel.isPartOfThis(x)){
             return new Reel(x);
-        }else if(x == Number.POSITIVE_INFINITY){
+        }
+         if(x == Number.POSITIVE_INFINITY){
             return new Reel(Number.MAX_VALUE);
-        }else if (x == Number.NEGATIVE_INFINITY) {
-            return new Reel(-Number.MAX_VALUE)
+        }
+         if (x == Number.NEGATIVE_INFINITY) {
+            return new Reel(-Number.MAX_VALUE);
+        }
+        if (x instanceof Complexe) {
+            return new Reel(x.real);
         }
 
         return NaN;
@@ -247,7 +251,7 @@ class Complexe{
      * @param {String} forme="alg" | La forme sous laquelle représenter le nombre:
      * "alg": algébrique (a + bi);
      * "trig": trigonométrique (r[cos θ + isin θ]);
-     * "exp": exponentielle (re^(iθ)).
+     * "exp": exponentielle (re^[iθ]).
      * 
      * @returns {String} Retoune undefined si l'argument forme est incorrect. 
      */
@@ -264,6 +268,25 @@ class Complexe{
             default:
                 return undefined;
         }
+    }
+
+    /**
+     * Donne l'objet complexe correspondant à z
+     * @param {Number | Reel | Complexe} z Le nombre à convertir
+     * @param {Boolean} isImgPur=false | Si z est un imaginaire pur ou pas.
+     * @returns {Complexe}
+     */
+    static toComplexe(z, isImgPur=false){
+        if (z instanceof Complexe) {
+            return z;
+        }else if (z instanceof abstractNumber) {
+            z = z.value;
+        }
+
+        if (isImgPur) {
+            return new Complexe(0, z);
+        }
+        return new Complexe(z, 0);
     }
 
     /**
@@ -449,11 +472,12 @@ class Complexe{
 
     /**
      * Divise this par z
-     * @param {Complexe} z Le nombre par lequel diviser this
+     * @param {Complexe} z Le nombre par lequel diviser this 
      * @param {Boolean} set=false | si this doit être égal au résultat
-     * @returns {Complexe}
+     * @returns {Complexe | undefined} Renvoie undefined si z == 0
      */
     divide(z, set){
+        if(z.is0()){return undefined;}
         const result = Complexe.init(this.module / z.module, this.arg - z.arg);
         
         if(set){this.setTo(result)}
@@ -524,6 +548,7 @@ class Complexe{
             return this;
         }
 
+        //if(n < 0)
         for (let i = 0; i < n; i++) {
             this.divide(base, true);
         }
@@ -816,3 +841,5 @@ class Angle{
         return this;
     }
 }
+
+//export {Naturel, Relatif, Reel, Complexe, Angle}

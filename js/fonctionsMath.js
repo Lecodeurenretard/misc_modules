@@ -1,7 +1,8 @@
 //import { Fraction } from "fractions.js";
 
 /**
- * Une interface contenant des fonctions relatives aux Mathématiques
+ * Une interface contenant des fonctions relatives aux Mathématiques.
+ * Est compatible avec Les classes de nombre.js
  */
 class Mathemathics{
     /**
@@ -14,11 +15,13 @@ class Mathemathics{
 
     /**
      * Vérifie si x est premier (n'ayant que 1 et lui-même pour diviseur dans Z) 
-     * @param {Number} x  Le nombre à tester, doit être < 3721.
+     * @param {Number | Naturel | Relatif} x  Le nombre à tester, doit être < 3721.
      * @returns {Boolean | undefined} Si le nombre est premier, si x n'est pas entier retourne undefined. La fonction renvoie null si x > 3721
      */
 
     static isPremier(x){
+        if (x instanceof Naturel || x instanceof Relatif) {x = x.value;}
+
         if (!Number.isInteger(x)) {
             return undefined;
         }
@@ -41,23 +44,22 @@ class Mathemathics{
         return true;
     }
 
-    /*static isCarreParfait(x){
-        return this.isEntier(Math.sqrt(x))
-    }*/
-
     /**
      * Vérifie si x est entier
-     * @param {Number} x Le nombre à tester 
+     * @param {Number | Reel} x Le nombre à tester 
      * @returns {Boolean} Si le nombre est entier
      */
     static isEntier(x){
+        if (x instanceof abstractNumber) {
+            
+        }
         return Number.isInteger(x);
     }
 
     /**
      * Logarithme en base base de a
      * @param {Number} x Le paramètre du logarithme
-     * @param {Number} base La base du logarithme par défaut: 10
+     * @param {Number} base=10 | La base du logaritme
      * @returns {Number} Le logarithme en base base de a
      */
     static log(x, base = 10){
@@ -81,7 +83,8 @@ class Mathemathics{
 
 
     /**
-     * La racine n ième de x (opération inverse de x^n) (ex: NthRoot(27, 3) = 3 car 3^3 = 27 ou NthRoot(16, 4) = 2 car 2^4 = 16)
+     * La racine n ième de x (opération inverse de x^n) 
+     * (ex: NthRoot(27, 3) = 3 car 3^3 = 27 ou NthRoot(16, 4) = 2 car 2^4 = 16)
      * @param {Number | Reel | Complexe} x Le nombre sous la racine.
      * @param {Number | Reel} n L'exposant à enlever
      */
@@ -345,6 +348,36 @@ class Mathemathics{
     }
 
     /**
+     * Multiplie
+     * @param {Number | Fraction | Reel | Complexe} a Fraction et abstractNumber sont convertits en Number
+     * @param {Number | Fraction | Reel | Complexe} b Fraction et abstractNumber sont convertits en Number
+     * @returns {Number | Complexe} 
+     */
+    static globalMultiply(a, b){
+        if (a instanceof abstractNumber) {
+            a = a.value;
+        }else if (a instanceof Fraction) {
+           a = a.ToNumber();
+        }
+       
+        if (b instanceof abstractNumber) {
+            b = b.value;
+        }else if (a instanceof Fraction) {
+            b = b.ToNumber();
+        }
+
+
+        if (!Number.isNaN(a) && !Number.isNaN(b)) {
+            return a * b;
+        }
+
+        const za = Complexe.toComplexe(a),
+            zb = Complexe.toComplexe(b);
+        
+        return Complexe.multiply(za, zb);
+    }
+
+    /**
      * Calcule la factorielle de n avec la méthode récursive
      * @param {Number | Relatif} n
      * @returns {Number} La factorielle du nombre
@@ -373,11 +406,14 @@ class Mathemathics{
 
      /**
      * Coupe le nombre à sa accuracy-ième décimale.  (ex: truncFloat(Math.PI) = 3.141)
-     * @param {Number} x Le nombre de base.
-     * @param {Number} accuracy = 3 | La décimale où il faut couper.
+     * @param {Number | Reel} x Le nombre de base.
+     * @param {Number | Reel} accuracy = 3 | La décimale où il faut couper.
      * @returns {Number}
      */
      static truncFloat(x, accuracy = 3){
+        if (x instanceof abstractNumber)        {x = x.value;}
+        if (accuracy instanceof abstractNumber) {accuracy = accuracy.value}
+
         if (accuracy == Number.POSITIVE_INFINITY) {
             return x;         //Le résultat sera x avec le maximum de décimales qu'il puisse avoir donc lui-même
         }
@@ -395,11 +431,14 @@ class Mathemathics{
 
     /**
      * Arrondis le nombre à sa accuracy-ième décimale.  (ex: Math.E ≈ 2.718;  round(Math.E, 2) = 2.72)
-     * @param {Number} x Le nombre de base.
-     * @param {Number} accuracy = 3 | La décimale où il faut arrondir.
+     * @param {Number | Reel} x Le nombre de base.
+     * @param {Number | Reel} accuracy = 3 | La décimale où il faut arrondir.
      * @returns {Number}
      */
     static round(x, accuracy = 3){
+        if (x instanceof abstractNumber)        {x = x.value;}
+        if (accuracy instanceof abstractNumber) {accuracy = accuracy.value}
+
             if (accuracy == Number.POSITIVE_INFINITY) {
                 return x;         //Le résultat sera x avec le maximum de décimales qu'il puisse avoir donc lui-même
             }
@@ -423,12 +462,8 @@ class Mathemathics{
      * @returns {Number}
      */
     static expodentielle(u, x){
-        if (u instanceof abstractNumber) {
-            u = u.value;
-        }
-        if (x instanceof abstractNumber) {
-            x = x.value;
-        }
+        if (u instanceof abstractNumber) {u = u.value;}
+        if (x instanceof abstractNumber) {x = x.value;}
 
         if (!Number.isNaN(u)) {
             return u**x;            //si réel
