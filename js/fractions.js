@@ -12,20 +12,18 @@ class Fraction{
      * @param {Number | Relatif} denominateur Le bas, le diviseur != 0
      */
     constructor(numerateur, denominateur){
-        if (numerateur instanceof Relatif || numerateur instanceof Naturel) {
-            numerateur = numerateur.value
-        }
+        if(numerateur instanceof Relatif || numerateur instanceof Naturel){ numerateur = numerateur.value; }
+        else if((!Number.isInteger(numerateur) && Reel.isPartOfThis(numerateur)) || numerateur instanceof Complexe){ throw new WrongEnsembleError('La fonction n\'admet pas les nombres non entiers'); }
 
-        if (denominateur instanceof Relatif || denominateur instanceof Naturel) {
-            
-        }
-
+        if(denominateur instanceof Relatif || denominateur instanceof Naturel){ denominateur = denominateur.value; }
+        else if((!Number.isInteger(denominateur) && Reel.isPartOfThis(denominateur)) || denominateur instanceof Complexe){ throw new WrongEnsembleError('La fonction n\'admet pas les nombres non entiers'); }
+        
         if (denominateur == 0) {
-            throw "Division par 0, le dénominateur d'un objet Fraction a tenté d'être mis à 0."
+            throw new OperationError("Division by 0");
         }
 
-         if(denominateur < 0){
-            numerateur = -numerateur;   //on standardise en mettant le négatif au numerateur.
+        if(denominateur < 0){
+            numerateur = -numerateur;   //on met le négatif au numerateur.
             denominateur = -denominateur;
         }
 
@@ -138,13 +136,13 @@ class Fraction{
 
     /**
      * Multiplie les deux membres de la fraction tel que pour toute Fraction f = a/b: f = f.multiplyEqual(c) = ac/bc
-     * @param {Number | Reel} x Un nombre entier, si il ne l'est pas il sera arrondit
+     * @param {Number | Reel} x Un nombre, il sera arrondit
      * @param {Boolean} set Si true,  met la fraction de laquelle la méthode est appelée à ce qu'elle retourne.
      * @returns {Fraction} La fraction avec x de multiplié sur chaque membre
      */
 
     multiplyEqual(x, set  = false){
-        if (x instanceof abstractNumber) {x = x.value;}
+        if(x instanceof abstractNumber){ x = x.value; }
        
         x = Math.round(x);
         const num = x * this.numerateur,
@@ -155,6 +153,18 @@ class Fraction{
             this.denominateur = deno;
         }
         return new Fraction(num, deno);
+    }
+
+    /**
+     * Ajoute f à la fraction de sorte à ce que la fraction soit toujour égale à elle-même
+     * @param {Fraction} f Une fraction égale à this, si ça ne l'est pas, on fera this + (this*2/2);
+     * @returns {Fraction | undefined} Renvoie undefined si f n'est pas une fraction.
+     */
+    addEquals(f){
+        if (!(f instanceof Fraction)) {return undefined}
+        if (!Fraction.equals(this, f)) {f = new Fraction(this.numerateur*2, this.denominateur*2);}
+
+        return Fraction.add(this, f);
     }
 
     /**
@@ -227,13 +237,15 @@ class Fraction{
 
     /**
      * Change le dénominateur de la Fraction, tel que pour toute Fraction f, et entier m, f = f.changeDeno(m)
-     * @param {Number} n Le dénominateur, Il sera arrondit au plus proche (unité près)
+     * @param {Number | Reel} n Le dénominateur, Il sera arrondit au plus proche (unité près)
      * @param {Boolean} set=false | Si la Fraction doit se set à ce qu'elle retourne.
      * @param {Boolean} notInterger=false | Permet au dénominateur d'être arrondis par le constructeur de Fraction.
      * @returns {Fraction} La Fraction sous un dénominateur n. Si la fraction n'a pas de dénominateur entier, retourne this.
      */
     changeDeno(n, set = false, notInterger = false){
-        n = Math.round(n);
+        if(n instanceof Relatif || n instanceof Naturel){ n = n.value; }
+        if((!Number.isInteger(n) && Reel.isPartOfThis(n)) || n instanceof Complexe){ throw new WrongEnsembleError('Le dénominateur doit être entier'); }
+        
         const newNum = this.numerateur * n/this.denominateur; //règle de trois,produit en croix, ...
         
         if (!Number.isInteger(newNum) && !notInterger) {
@@ -252,7 +264,7 @@ class Fraction{
         const F1 = f1.ToNumber(),
             F2 = f2.ToNumber();
 
-        return (F1 < F2);
+        return (F1 == F2);
     }
 
     /**
@@ -275,21 +287,7 @@ class Fraction{
         const F1 = f1.ToNumber(),
             F2 = f2.ToNumber();
 
-        return (F1 < F2);s
+        return (F1 > F2);s
     }
-
-    /**
-     * Compare deux fractions
-     * @param {Fraction} f1 1ere fraction
-     * @param {Fraction} f2 2e fraction
-     * @returns {Boolean} Si f1 < f2
-     */
-    static lower(f1, f2){
-        const F1 = f1.ToNumber(),
-            F2 = f2.ToNumber();
-
-        return (F1 < F2);
-    }
-
 }
 //export {Fraction};

@@ -1,5 +1,287 @@
 //import { Mathemathics } from "fonctionMath.js";
 
+/**
+ * Une classe pour des angles (seul les degrés et les radians sont reconnus comme des unitées).
+ */
+class Angle{
+
+    static PI4 = new Angle(Math.PI/4, "radian");
+    static PI3 = new Angle(Math.PI/3, "radian");
+    static DROIT = new Angle(Math.PI/2, "radian");
+    static PLAT = new Angle(Math.PI, "radian");
+    static PLEIN = new Angle(2*Math.PI, "radian");
+
+    /**
+     * @param {Number | Reel} val La valeur de l'angle.
+     * @param {String} unit = "degree"; L'unitée utilisée, si la valeur entrée n'est ni "degree" ni "radian" alors l'angle n'aura aucune unitée (unit = "none"),
+     *  dans ce cas là certaine méthodes sont indisponibles à l'objet.
+     */
+    constructor(val, unit = "degree"){
+        if(val instanceof Complexe){ throw new WrongEnsembleError(); }
+
+        if (unit == "radian" || unit == "degree") {
+            this.unit = unit;
+        }else{
+            this.unit = "none";
+        }
+
+        this.value = val;
+    }
+
+    /**
+     * @param {String | undefined} unit=undefined | L'unitée dans laquelle exprimer l'angle (n'aura pas d'effet si l'objet à une unité none);
+     *  pour exprimer l'angle dans son unité courante passer undefined.
+     * @param {Boolean} fullNotation=false |  Si on exprime toutes les valeurs de l'angle ( +2πn || +360n), n'a aucun effet si l'unité est none.
+     * @returns {String} L'angle sous forme de string;  retourne null si unit est incorrect.
+     */
+    toString(unit = undefined, fullNotation = false){
+        if (unit == undefined) {
+            unit = this.unit;
+        }
+        if (fullNotation && (unit == "radian" || unit == "degree")) {
+            const val = Angle.convertTo(Angle.defaultNotation(this), unit);    //l'angle dans la bonne unité et dans son écriture par défaut
+           
+            const fin = ((unit == "radian") ? " +2πn" : " + 360n") + ((unit == "radian") ? " rad" : '°');  //soit on a "θ +2πn rad" soit on a "α + 360n°"
+
+            switch (val) {
+                case 0:
+                    return (unit == "radian" ? '2πn' : '360n'); 
+                
+                case (unit == "radian" ? Math.PI : 180) :  //en fonction de l'unité
+                    return (unit == "radian" ? 'π' : '180') + fin;
+
+                case (unit == "radian" ? Math.PI/3 : 120) :  
+                    return (unit == "radian" ? 'π/3' : '120') + fin;
+                
+                case (unit == "radian" ? Math.PI/2 : 180) :  
+                    return (unit == "radian" ? 'π/2' : '90') + fin;
+            
+                case (unit == "radian" ? Math.PI/4 : 45) :  
+                    return (unit == "radian" ? 'π/4' : '45') + fin;
+                
+                default:
+                    return val.toString() + fin;
+            }
+        }
+
+        switch (unit) {
+            case "none":
+                return this.value.toString() + unit;
+            
+            case "radian":
+                return this.value.toString() + " rad";
+
+            case "degree":
+                return this.value.toString() + '°';
+        
+            default:
+                return null;
+        }
+    }
+
+    
+    
+    /**
+    * Convertit les degrés en radians.
+    * @param {Number | Angle} angle L'angle devant être convertit (doit être en degré), si c'est un objet Angle alors on utilisera la version objet.
+    * @param {Boolean} coef= false | Si true, la fonction ne retournera que le coefficient. On peut donc écrire pour tout a (avec cette fonction représentée par f()): f(a) = π*f(a, true)
+    * @returns {Number}  L'équivalent en radian.
+    */
+    static convertToRadian(angle, coef=false){
+        if (angle instanceof Angle && angle.unit == "radian") {
+            return angle;
+        }
+
+        let ang = angle;
+        if (angle instanceof Angle) {
+            ang = angle.value;
+        }
+
+        if (!coef) {
+            ang *= Math.PI;
+        }
+    
+        return ang/ 180
+    }
+    /**
+    * Convertit les radians en degrés.
+    * @param {Number | Angle} angle number L'angle devant être convertit (doit être en radian).
+    * @returns {Number}  L'équivalent en degré.
+    */
+    static convertToDegree(angle){
+        if (angle instanceof Angle) {
+            angle = angle.value;
+        }
+
+        return angle * 180 /Math.PI
+    }
+
+    /**
+     * Convertit un angle.
+     * @param {Angle | Number | Reel} angle L'angle à être convertit.
+     * @param {String} what L'unité vers laquelle convertir l'angle; si "none" on retournera juste la valeur de l'angle.
+     * @param {Boolean} coef=false | L'argument à passer à convertToRadian().
+     * @returns {Number | null} La valeur de l'angle convertit; 
+     * renvoie null si what est incorrect.
+     */
+    static convertTo(angle, what, coef=false){
+        if (angle instanceof abstractNumber) {
+            angle = angle.value;
+        }
+        else if(!(angle instanceof Angle) && typeof angle == "object"){
+            return null;
+        }
+        else if(angle instanceof Complexe){ throw new WrongEnsembleError("Un angle ne peut être Complexe."); }
+        
+        
+        if (typeof angle == "object" && angle.unit == what) {    //forcément un Angle
+            return angle;
+        }
+
+        switch (what) {
+            case "radian":
+                return Angle.convertToRadian(angle, coef);
+            
+            case "degree":
+                return Angle.convertToDegree(angle);
+        
+            case "none":
+                if (angle instanceof Angle) {
+                    return angle.value
+                }
+                return angle;
+
+
+            default:
+                return null;
+        }
+    }
+    
+    /**
+     * Convertit l'angle en degré.
+     * @returns {Angle| undefined} Retourne l'angle une fois convertit, si l'unité est "none" alors la fonction retournera undefinded.
+     */
+    convertToDegree(){
+        if (this.unit == "none") {
+            return undefined;
+        }else if(this.unit == "degree"){
+            return this;
+        }
+
+       this.value *= 180/Math.PI;
+       this.unit = "degree";
+
+       return this;
+    }
+
+    /**
+    * Fait l'objet se convertir en radian.
+    * @param {Boolean} coef=false | Si true, la fonction ne retournera que le coefficient. On peut donc écrire pour tout a (avec cette fonction représentée par f()): f(a) = π*f(a, true)
+    * @returns {Angle | undefined} L'objet convertit; retourne undefined si l'bjet n'a pas d'unité
+    */
+    convertToRadian(coef = false){
+        if (this.unit == "none") {
+            return undefined;
+        }else if(this.unit == "radian"){
+            return this;
+        }
+        let pi = Math.PI;
+        if (coef) {
+            pi = 1;
+        }
+
+        this.value *= pi/180;
+        this.unit = "radian";
+        
+        return this;
+    }
+
+    /**
+     * Appelle les differentes fonctions de convertion; permet la convertion vers "none" (juste la valeur).
+     * @param {String} what Vers quel unitée convertir l'angle; si none mettera l'unité à "none" et renverra la valeur de l'angle.
+     * @param {Boolean} coef=false | L'argument passé à .convertToRadian() et effectif seulment dans ce cas là.
+     * @returns {Angle | undefined | null} Retourne l'objet une fois convertit.
+     * Retourne undefined si l'objet à une unité none et renvoie null si what est incorrect.
+     */
+    convertTo(what, coef = false){
+        switch (what) {
+            case "radian":
+                return this.convertToRadian(coef);
+            
+            case "degree":
+                return this.convertToDegree();
+        
+            case "none":
+                this.unit = "none";
+                return this.value;
+
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Renvoie la valeur "par défaut" de l'angle fourni, c'est à dire sa valeur appartenant à [0°; 360°[
+     * @param {Angle} alpha 
+     * @returns {Angle | undefined} L'angle dans sa forme par défaut. Retourne undefined si l'angle n'a pas d'unité
+     */
+    static defaultNotation(alpha){
+        
+
+        const unit = alpha.unit;
+        if (unit == "none") {return undefined;}
+
+        const beta = new Angle(Angle.convertToDegree(alpha));        //on convertit en degrés pour ne pas à avoir à faire -6.28304... à chaque itération
+        
+        let newVal = beta.value;
+
+        
+        while (newVal < 0){
+            newVal += 360;
+        } 
+        
+        while (newVal >= 360){
+            newVal -= 360;
+        } 
+        
+
+        if (unit == "radian") {
+           return Angle.convertToRadian(newVal);
+        }else if (unit == "degree") {
+            return new Angle(newVal);
+        }
+
+        return newVal;
+    }
+
+    /**
+     * Renvoie la valeur "par défaut" de l'angle, c'est à dire sa valeur appartenant à [0°; 360°[
+     * @returns {Angle}
+     */
+    defaultNotation(){
+        let beta = Angle.defaultNotation(this);
+        this.value = beta.value;
+        return this;
+    }
+
+    /**
+     * Set this à alpha.
+     * @param {Angle} alpha L'angle auquel on copie les données.
+     * @param {Boolean} takeUnit=true | Si l'angle doit prendre l'unité de alpha (si non la valeur d'alpha sera convertie). 
+     * @returns {Angle} La nouvelle version de this.
+     */
+    setTo(alpha, takeUnit = true){
+        if (!takeUnit) {
+            this.value = Angle.convertTo(alpha, this.unit);
+            return this;
+        }
+
+        this.value = alpha.value;
+        this.unit = alpha.unit;
+        return alpha;
+    }
+}
+
 //Les classes qui vont suivre représentent les ensembles de nombres.
 
 //import { Mathemathics } from "fonctionsMath.js";
@@ -26,13 +308,19 @@ class abstractNumber {
      * @returns {Boolean} Si x appartient à R
      */
     static isPartOfThis(x){
-        return (!(Mathemathics.isInf(x) || Number.isNaN(x) || !(x instanceof Complexe )))
+        return (!(Mathemathics.isInf(x) || Number.isNaN(x)))
     }
 
+    /**
+     * @returns {Number}
+     */
     toNumber(){
         return this.value;
     }
 
+    /**
+     * @returns {String}
+     */
     toString(){
         return this.value.toString();
     }
@@ -213,17 +501,18 @@ class Reel extends abstractNumber{
     /**
      * Convertit x en Réel
      * @param {Number} x Le nombre à être convertit.
-     * @returns {Reel | Number} Si x est complexe, ne prend en compte que la partie négative
+     * @returns {Reel | Number} Si x est complexe, ne prend en compte que la partie Réelle
      */
     static toThis(x){
+        if(x instanceof abstractNumber){ x = x.value; }
         
         if(Reel.isPartOfThis(x)){
             return new Reel(x);
         }
-         if(x == Number.POSITIVE_INFINITY){
+        if(x == Number.POSITIVE_INFINITY){
             return new Reel(Number.MAX_VALUE);
         }
-         if (x == Number.NEGATIVE_INFINITY) {
+        if (x == Number.NEGATIVE_INFINITY) {
             return new Reel(-Number.MAX_VALUE);
         }
         if (x instanceof Complexe) {
@@ -239,11 +528,18 @@ class Reel extends abstractNumber{
  * Cette classe n'hérite pas de abstractNumber.
  */
 class Complexe{
+    static I = new Complexe(0, 1);
+    static PI = new Complexe(Math.PI, 0);
+    static E = new Complexe(Math.E, 0);
+
     constructor(realPart, imaginaryPart){
+        if (realPart instanceof abstractNumber) {realPart = realPart.value;}
+        if (imaginaryPart instanceof abstractNumber) {imaginaryPart = imaginaryPart.value;}
+
         this.real = realPart;
         this.img = imaginaryPart;
-        this.arg = new Angle(Math.atan(imaginaryPart/realPart), "radian");  //arctan(b/a)
-        this.module = Math.sqrt(realPart**2 + imaginaryPart**2);    //√(a²+b²)
+        this.arg = new Angle(Complexe.calcArg(realPart, imaginaryPart), "radian");  //arctan(b/a)
+        this.module = Complexe.calcModulus(realPart, imaginaryPart)    //√(a²+b²)
     }
 
     /**
@@ -253,18 +549,23 @@ class Complexe{
      * "trig": trigonométrique (r[cos θ + isin θ]);
      * "exp": exponentielle (re^[iθ]).
      * 
+     * @param {Boolean} fullNotation=false | Si l'angle doit montrer toutes ses valeurs, pas prise en compte dans la forme algebrique. 
      * @returns {String} Retoune undefined si l'argument forme est incorrect. 
      */
-    toString(forme = "alg"){
+    toString(forme = "alg", fullNotation = false){
+        if(this.isEq(Complexe.E) && forme == "exp"){
+
+        }
+
         switch (forme) {
             case "alg":
-                return this.real.toString() + ' + ' + this.img.toString() + 'i' 
+                return this.real.toString() + ' + ' + this.img.toString() + 'i';
             
             case "trig":
-                return this.module.toString() + "( cos " + this.arg.toString() + " + isin " + this.arg.toString() + ' )';
+                return this.module.toString() + "( cos " + this.arg.toString(undefined, fullNotation) + " + isin " + this.arg.toString(undefined, fullNotation) + ' )';
         
             case "exp":
-                return this.module.toString() + ' * e^(i' + this.arg.toString() + ')'
+                return this.module.toString() + ' * e^(i' + this.arg.toString(undefined, fullNotation) + ')';
             default:
                 return undefined;
         }
@@ -277,11 +578,8 @@ class Complexe{
      * @returns {Complexe}
      */
     static toComplexe(z, isImgPur=false){
-        if (z instanceof Complexe) {
-            return z;
-        }else if (z instanceof abstractNumber) {
-            z = z.value;
-        }
+        if (z instanceof Complexe) {return z;}
+        else if (z instanceof abstractNumber) {z = z.value;}
 
         if (isImgPur) {
             return new Complexe(0, z);
@@ -296,30 +594,30 @@ class Complexe{
     setTo(z){
         this.real = z.real;
         this.img = z.img;
-        this.arg = z.arg;
+        this.arg.setTo(z.arg);
         this.module = z.module;
     }
 
     /**
      * Initialise l'objet courant par les données données par la forme exponetielle
      * @param {Number | Reel} module Le module du nombre (r).
-     * @param {Number | Reel} argument L'argument du nombre (θ) mesuré dans le sens conventionel.
-     * @returns {undefined | null} Retourne null si l'un des seux paramètre n'est pas une instance de abstractNumber ou si le nombre n'est pas un reel.
+     * @param {Number | Reel | Angle} argument L'argument du nombre (θ) mesuré dans le sens conventionel en radian.
      */
     initExpo(module, argument){
-        if (module instanceof abstractNumber) { //si module ou argument sont des abstractNumber alors on les convertit en nombre
-            module = module.value;
-        }
-        if (argument instanceof abstractNumber) {
-            argument = argument.value;
+        //si module ou argument sont des abstractNumber alors on les convertit en nombre
+        if (module instanceof abstractNumber)   {module   = module.value;  }
+        if (argument instanceof abstractNumber) {argument = argument.value;}
+
+        if (!(argument instanceof Angle)) {
+            argument = new Angle(argument, "radian");
         }
 
 
         if(!Reel.isPartOfThis(module) || !Reel.isPartOfThis(argument)){     //on vérifie si module et arguments sont valides
-            return null;
+            throw new WrongEnsembleError("Le module et l'argument doivent être des complexes");
         }
 
-        this.arg = argument;
+        this.arg.setTo(argument, false);    //on garde l'angle en radian
         this.module = module;
         this.real = module * Math.cos(argument);
         this.img = module * Math.sin(argument);
@@ -327,7 +625,6 @@ class Complexe{
             on en déduit que a = r*cos θ
             et que b = r*sin θ
         */
-       return undefined;
     }
 
     /**
@@ -338,7 +635,7 @@ class Complexe{
      */
     static init(modulus, arg){
         let z = new Complexe(1, 0);
-        z.initExpo(modulus, arg);
+        z.initExpo(modulus, arg);       //les variables sont set dans la fonction
         return z;
     }
 
@@ -349,12 +646,9 @@ class Complexe{
      * @returns {Number} La valeur absolue de z.
      */
     static calcModulus(a, b){
-        if (a instanceof abstractNumber) {
-            a = a.value;
-        }
-        if (b instanceof abstractNumber) {
-            b = b.value;
-        }
+        if (a instanceof abstractNumber) {a = a.value;}
+        if (b instanceof abstractNumber) {b = b.value;}
+        
         return Math.sqrt(a**2 + b**2);  //distance entre deux points (cours de 2nde)
     }
     /**
@@ -364,12 +658,9 @@ class Complexe{
      * @returns {Number} L'argument de z (exprimé en radian)
      */
     static calcArg(a, b){
-        if (a instanceof abstractNumber) {
-            a = a.value;
-        }
-        if (b instanceof abstractNumber) {
-            b = b.value;
-        }
+        if (a instanceof abstractNumber) {a = a.value;}
+        if (b instanceof abstractNumber) {b = b.value;}
+
         return Math.atan(b/a);
     }
 
@@ -403,7 +694,7 @@ class Complexe{
      * @returns {Complexe}
      */
     static multiply(z1, z2){
-        return Complexe.init(z1.module * z2.module, z1.arg + z2.arg);
+        return Complexe.init(z1.module * z2.module, z1.arg.value + z2.arg.value);
         /*On multiplie avec la forme exponentielle:
         z1 = r * e^(iθ)
         z2 = m * e^(iα)
@@ -418,7 +709,7 @@ class Complexe{
      * @param {Complexe} z2 
      */
     static divide(z1, z2){
-        return Complexe.init(z1.module / z2.module, z1.arg - z2.arg);
+        return Complexe.init(z1.module / z2.module, z1.arg.value - z2.arg.value);
         /*On divise toujours par la forme exponetielle
         
         z1 = r * e^(iθ)
@@ -434,7 +725,7 @@ class Complexe{
      * @param {boolean} set=false | si this doit être mit au résultat 
      * @returns {Complexe} 
      */
-       add(z, set = false){
+    add(z, set = false){
         const result = new Complexe(this.real + z.real, this.img + z.img);
 
         if(set){this.setTo(result)}
@@ -463,7 +754,7 @@ class Complexe{
      * @returns {Complexe}
      */
     multiply(z, set){
-        const result = Complexe.init(this.module * z.module, this.arg + z.arg);
+        const result = Complexe.init(this.module * z.module, this.arg.value + z.arg.value);
         
         if(set){this.setTo(result)}
         
@@ -478,7 +769,7 @@ class Complexe{
      */
     divide(z, set){
         if(z.is0()){return undefined;}
-        const result = Complexe.init(this.module / z.module, this.arg - z.arg);
+        const result = Complexe.init(this.module / z.module, this.arg.value - z.arg.value);
         
         if(set){this.setTo(result)}
         
@@ -488,18 +779,18 @@ class Complexe{
 
     /**
      * Donne l'inverse du nombre complexe
-     * @returns {Complexe | undefined} retourne undefined si l'objet est nul
+     * @returns {Complexe}
      */
     inverse(){
         if (this.is0()) {
-            return undefined;
+            throw new OperationError("Cannot find the inverse of 0");
         }
 
         const sqMod = (this.module)**2,
             a = this.real,
             b = this.img;
 
-        return new Complexe(a/sqMod, -b/sqMod);
+        return this.conjug().divide(new Complexe(sqMod));   //le conjugué divisé par le module au carré (démonstration en bas)
 
         /*l'inverse de z est 1/z
         z = a+bi
@@ -520,17 +811,15 @@ class Complexe{
     }
 
     /**
-     * Elève this à la puissance n via la méthode récursive (z^5 = z*z*z*z*z).
+     * Elève this à la puissance n via la méthode récursive (z^5 = z*z*z*z*z); pour des n ∉ Z, préférer this.exponent() 
      * @param {Number | Relatif} n La puissance à laquelle élever this.
      * @param {Boolean} set=true |  Si this doit changer de valeur pour être égal au résultat
-     * @returns {Complexe | undefined | Number} Renvoie undefined si n n'est pas entier, NaN si ce n'est pas un nombre
+     * @returns {Complexe | undefined | Number} Renvoie NaN si ce n'est pas un nombre
      */
     nthPower(n, set=true){
-        if (n instanceof Relatif ||n instanceof Naturel) {
-            n = n.value
-        }else if(n instanceof abstractNumber || n instanceof Complexe){
-            return undefined;
-        }else if (typeof(n) != "Number") {
+       if(n instanceof Relatif || n instanceof Naturel){ n = n.value; }
+       if((!Number.isInteger(n) && Reel.isPartOfThis(n)) || n instanceof Complexe){ throw new WrongEnsembleError('La fonction n\'admet pas les nombres non entiers'); }
+       else if (typeof(n) != "Number") {
             return NaN;
         }
 
@@ -562,13 +851,12 @@ class Complexe{
      * @returns {Complexe}
      */
     static exponent(z, x){
-        if (x instanceof abstractNumber) {
-            x = x.value
-        }
+        if (x instanceof abstractNumber) {x = x.value}
+        else if(x instanceof Complexe){ throw new WrongEnsembleError("Cannot have Complexe exponent."); }
 
-        let arg = z.arg * x,
+        let arg = z.arg.value * x,
             mod = z.module**x, 
-            new_z = (new Complexe(0, 1));   //i
+            new_z = Complexe.I;   //i
         new_z.initExpo(mod, arg);
         
         return new_z;
@@ -582,11 +870,11 @@ class Complexe{
         = e^(ixt) * e^(tln r)
         = e^(ixt) * r^t
         
-        soit X = xt; R = r^t 
+        soit X = xt, R = r^t 
         => z^t = R * e^(iX)
 
         Je rappelle la forme exponentielle d'un nombre complexe: 
-        z = re^(iθ) avec r = |z|, θ = arg(z), i = √-1 et e ≈ 2.72
+        z = re^(iθ) avec r = |z|, θ = arg(z), i = √-1 et e ≈ 2.718
         */
     }
 
@@ -623,223 +911,5 @@ class Complexe{
     }
 }
 
-/**
- * Une classe pour des angles (seul les degrés et les radians sont reconnus comme des unitées).
- */
-class Angle{
-    /**
-     * @param {Number | Reel} val La valeur de l'angle.
-     * @param {String} unit = "degree"; L'unitée utilisée, si la valeur entrée n'est ni "degree" ni "radian" alors l'angle n'aura aucune unitée (unit = "none"),
-     *  dans ce cas là certaine méthodes sont indisponibles à l'objet.
-     */
-    constructor(val, unit = "degree"){
-        if (unit == "radian" || unit == "degree") {
-            this.unit = unit;
-        }else{
-            this.unit = "none";
-        }
-
-        this.value = val;
-    }
-
-    /**
-     * @param {String | undefined} unit=undefined | L'unitée dans laquelle exprimer l'angle (n'aura pas d'effet si l'objet à une unité none);
-     *  pour exprimer l'angle dans son unité courante passer undefined.
-     * @param {Boolean} fullNotation=false |  Si on exprime toutes les valeurs de l'angle ( +2πn || +360n), n'a aucun effet si l'unité est none.
-     * @returns {String} L'angle sous forme de string;  retourne null si unit est incorrect.
-     */
-    toString(unit = undefined, fullNotation = false){
-        if (unit == undefined) {
-            unit = this.unit;
-        }
-        if (fullNotation && unit != "none") {
-            const val = Angle.convertTo(Angle.defaultNotation(this), unit, true).toString();    //l'angle dans la bonne unité et dans son écriture par défaut
-           
-            return val + ((unit == "radian") ? " +2πn" : " + 360n") + ((unit == "radian") ? " rad" : '°');  //soit on a "θ +2πn rad" soit on a "α + 360n°"
-        }
-
-        switch (unit) {
-            case "none":
-                return this.value.toString();
-            
-            case "radian":
-                return this.value.toString() + " rad";
-
-            case "degree":
-                return this.value.toString() + '°';
-        
-            default:
-                return null;
-        }
-    }
-
-    
-    
-    /**
-    * Convertit les degrés en radians.
-    * @param {Number | Angle} angle L'angle devant être convertit (doit être en degré), si c'est un objet Angle alors on utilisera la version objet.
-    * @param {Boolean} coef= false | Si true, la fonction ne retournera que le coefficient. On peut donc écrire pour tout a (avec cette fonction représentée par f()): f(a) = π*f(a, true)
-    * @returns {Number}  L'équivalent en radian.
-    */
-    static convertToRadian(angle, coef=false){
-        if (angle instanceof Angle) {
-            angle = angle.value;
-        }
-
-        if (!coef) {
-            angle *= Math.PI;
-        }
-    
-        return angle/ 180
-    }
-    /**
-    * Convertit les radians en degrés.
-    * @param {Number | Angle} angle number L'angle devant être convertit (doit être en radian).
-    * @returns {Number}  L'équivalent en degré.
-    */
-    static convertToDegree(angle){
-        if (angle instanceof Angle) {
-            angle = angle.value;
-        }
-
-        return angle * 180 /Math.PI
-    }
-
-    /**
-     * Convertit un angle.
-     * @param {Angle | Number | Reel} angle L'angle à être convertit.
-     * @param {String} what L'unité vers laquelle convertir l'angle; si "none" on retournera juste la valeur de l'angle.
-     * @param {Boolean} coef L'argument à passer à convertToRadian().
-     * @returns {Number | null} La valeur de l'angle convertit; 
-     * renvoie null si what est incorrect.
-     */
-    static convertTo(angle, what, coef=false){
-        if (angle instanceof abstractNumber) {
-            angle = angle.value;
-        }else if(!(angle instanceof Angle) && typeof angle == "object"){
-            return null;
-        }
-
-        switch (what) {
-            case "radian":
-                return Angle.convertToRadian(angle, coef);
-            
-            case "degree":
-                return Angle.convertToDegree(angle);
-        
-            case "none":
-                if (angle instanceof Angle) {
-                    return angle.value
-                }
-                return angle;
-
-
-            default:
-                return null;
-        }
-    }
-    
-    /**
-     * Convertit l'angle en degré.
-     * @returns {Angle| undefined} Retourne l'angle une fois convertit, si l'unité est "none" alors la fonction retournera undefinded.
-     */
-    convertToDegree(){
-        if (this.unit == "none") {
-            return undefined;
-        }else if(this.unit == "radian"){
-            return this;
-        }
-
-       this.value *= 180/Math.PI;
-       this.unit = "degree";
-
-       return this;
-    }
-
-    /**
-    * Fait l'objet se convertir en radian.
-    * @param {Boolean} coef=false | Si true, la fonction ne retournera que le coefficient. On peut donc écrire pour tout a (avec cette fonction représentée par f()): f(a) = π*f(a, true)
-    * @returns {Angle | undefined} L'objet convertit; retourne undefined si l'bjet n'a pas d'unité
-    */
-    convertToRadian(coef = false){
-        if (this.unit == "none") {
-            return undefined;
-        }else if(this.unit == "degree"){
-            return this;
-        }
-        let pi = Math.PI;
-        if (coef) {
-            pi = 1;
-        }
-
-        this.value *= pi/180;
-        this.unit = "radian";
-        
-        return this;
-    }
-
-    /**
-     * Appelle les differentes fonctions de convertion; permet la convertion vers "none" (juste la valeur).
-     * @param {String} what Vers quel unitée convertir l'angle; si none mettera l'unité à "none" et renverra la valeur de l'angle.
-     * @param {Boolean} coef=false | L'argument passé à .convertToRadian() et effectif seulment dans ce cas là.
-     * @returns {Angle | undefined | null} Retourne l'objet une fois convertit.
-     * Retourne undefined si l'objet à une unité none et renvoie null si what est incorrect.
-     */
-    convertTo(what, coef = false){
-        switch (what) {
-            case "radian":
-                return this.convertToRadian(coef);
-            
-            case "degree":
-                return this.convertToDegree();
-        
-            case "none":
-                this.unit = "none";
-                return this.value;
-
-            default:
-                return null;
-        }
-    }
-
-    /**
-     * Renvoie la valeur "par défaut" de l'angle fourni, c'est à dire sa valeur appartenant à [0°; 360°[
-     * @param {Angle} alpha 
-     * @returns {Angle} L'angle dans sa forme par défaut.
-     */
-    static defaultNotation(alpha){
-        const unit = alpha.unit;
-
-        alpha.convertToDegree();        //on convertit en degrés pour ne pas à avoir à faire -6.28304... à chaque itération
-
-        let newVal = alpha.value;
-
-        if(newVal < 0){
-            do {
-                newVal += 360;
-            } while (newVal >= 0);
-        }else{
-            while (newVal < 360){
-                newVal -= 360;
-            } 
-        }
-
-        if (unit == "radian") {
-           newVal = Angle.convertToRadian(newVal);
-        }
-
-        return newVal;
-    }
-
-    /**
-     * Renvoie la valeur "par défaut" de l'angle, c'est à dire sa valeur appartenant à [0°; 360°[
-     * @returns {Angle}
-     */
-    defaultNotation(){
-        let beta = Angle.defaultNotation(this);
-        this.value = beta.value;
-        return this;
-    }
-}
 
 //export {Naturel, Relatif, Reel, Complexe, Angle}

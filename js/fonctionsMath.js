@@ -1,10 +1,13 @@
 //import { Fraction } from "fractions.js";
+//import { Naturel, Relatif, Reel, Complexe, Angle } from "nombres.js"
 
 /**
  * Une interface contenant des fonctions relatives aux Mathématiques.
  * Est compatible avec Les classes de nombre.js
  */
 class Mathemathics{
+    static PHI = (1 + Math.sqrt(5))/2;      //le nombre d'or
+
     /**
      * @param {Number} x Le nombre à tester
      * @returns {Boolean} Si x == +|- infini
@@ -15,23 +18,23 @@ class Mathemathics{
 
     /**
      * Vérifie si x est premier (n'ayant que 1 et lui-même pour diviseur dans Z) 
-     * @param {Number | Naturel | Relatif} x  Le nombre à tester, doit être < 3721.
-     * @returns {Boolean | undefined} Si le nombre est premier, si x n'est pas entier retourne undefined. La fonction renvoie null si x > 3721
+     * @param {Number | Relatif} x  Le nombre à tester, doit être < 3721.
+     * @returns {Boolean | undefined} Si le nombre est premier, retourne null si x > 3721
      */
 
     static isPremier(x){
         if (x instanceof Naturel || x instanceof Relatif) {x = x.value;}
-
-        if (!Number.isInteger(x)) {
-            return undefined;
+        else if (x instanceof abstractNumber || x instanceof Complexe || !Number.isInteger(x)) {
+            throw new WrongEnsembleError();
         }
+
         
         if (x <= 1 || x == 3721) {        //tous les entiers ≤ 1 sont soit multiple de -1, soit 1, soit 0 => non premiers. Et 3721 = 61²
             return false;
         }
 
         if (x > 3721) { //la liste permet de trouver seulement jusqu'à là
-            return null;
+            return undefined;
         }
 
         numbers = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59];
@@ -50,20 +53,25 @@ class Mathemathics{
      * @returns {Boolean} Si le nombre est entier
      */
     static isEntier(x){
-        if (x instanceof abstractNumber) {
-            
-        }
+        if (x instanceof abstractNumber) {x = x.value;}
+        if (x instanceof Complexe) {return false;}
+        
         return Number.isInteger(x);
     }
 
     /**
-     * Logarithme en base base de a
-     * @param {Number} x Le paramètre du logarithme
-     * @param {Number} base=10 | La base du logaritme
+     * Logarithme en base base de a (R+ -> R)
+     * @param {Number | Reel} x Le paramètre du logarithme
+     * @param {Number | Reel} base=10 | La base du logaritme
      * @returns {Number} Le logarithme en base base de a
      */
     static log(x, base = 10){
-        x = Math.round(x);
+        if (x instanceof abstractNumber) {x = x.value;}
+        if (base instanceof abstractNumber) {base = base.value;}
+        
+        if (x instanceof Complexe || base instanceof Complexe) {throw new WrongEnsembleError("Cette fonction ne supporte pas les complexes");}
+        if (x < 0 || base < 0) {throw new OperationError("La fonction ne prend pas en compte les négatifs.");}
+
         const lnx = Math.log(x),        //Math.log(x) <=> ln x
             lnBase  = Math.log(base);
         
@@ -74,10 +82,12 @@ class Mathemathics{
     /**
      * Prend le logarithme en base base d'une Fraction
      * @param {Fraction} fraction La fraction
-     * @param {Number} base La base du logarithme
+     * @param {Number} base=10 | La base du logarithme
      * @returns {Number} Le résultat du logarithme.
      */
     static logF(fraction, base = 10){
+        if (base < 0) {throw new OperationError("La base ne peut être négative.");}
+
         return Mathemathics.log(fraction.numerateur, base) - Mathemathics.log(fraction.denominateur, base);
     }   //log(a/b) = log(a) - log(b)
 
@@ -85,13 +95,17 @@ class Mathemathics{
     /**
      * La racine n ième de x (opération inverse de x^n) 
      * (ex: NthRoot(27, 3) = 3 car 3^3 = 27 ou NthRoot(16, 4) = 2 car 2^4 = 16)
-     * @param {Number | Reel | Complexe} x Le nombre sous la racine.
+     * @param {Number | Reel } x Le nombre sous la racine.
      * @param {Number | Reel} n L'exposant à enlever
      */
-    static NthRoot(x, n){
-       
-        return x**(1/n);
-        
+    static realNthRoot(x, n){
+        if (x instanceof abstractNumber) {x = x.value;}
+        if (n instanceof abstractNumber) {n = n.value;}
+
+        if (x instanceof Complexe || n instanceof Complexe) {throw new WrongEnsembleError("La fonction ne prend pas en charge les complexes");}
+        if (x < 0 && n%2 == 0) {throw new OperationError("Ne peut prendre des racines complexes.")}
+
+       return x**(1/n);
     }
 
     /**
@@ -116,12 +130,14 @@ class Mathemathics{
     }
 
     /**
-     * Prend le sinus d'un angle x.
+     * Prend le sinus reel d'un angle x.
      * @param {Reel | Number | Angle} x 
      * @param {String} unite L'unitée de l'angle
      * @returns {Number}
      */
     static sin(x, unite){
+        if (x instanceof Complexe) {throw new WrongEnsembleError("L'ensemble des complexes n'est pas admis.");}
+
         const y = Mathemathics.prepTrigFunct(x, unite);
 
         return Math.sin(y);
@@ -134,6 +150,7 @@ class Mathemathics{
      * @returns {Number}
      */
     static cos(x, unite){
+        if (x instanceof Complexe) {throw new WrongEnsembleError("L'ensemble des complexes n'est pas admis.");}
         const y = Mathemathics.prepTrigFunct(x, unite);
 
         return Math.cos(y);
@@ -177,6 +194,8 @@ class Mathemathics{
      * @returns {Number}
      */
     static get2Factors(x){
+        if (x instanceof Complexe) {throw new WrongEnsembleError()}
+
         x = Mathemathics.round(x);
         return Math.floor(Math.log2(x));
     }
@@ -187,6 +206,8 @@ class Mathemathics{
      * @returns {Number}
      */
     static get10Factors(x){
+        if (x instanceof Complexe) {throw new WrongEnsembleError()}
+
         x = Mathemathics.round(x);
         return Math.floor(Math.log10(x));
     }
@@ -198,6 +219,8 @@ class Mathemathics{
      * @returns {Number}
      */
     static getNFactors(x, n){
+        if (x instanceof Complexe || n instanceof Complexe) {throw new WrongEnsembleError()}
+
         return Math.floor(Mathemathics.log(x, n));
     }
     
@@ -211,9 +234,7 @@ class Mathemathics{
         if (x instanceof abstractNumber) {
             x = x.value;
         }
-        if(Mathemathics.isInf(x)){
-            return undefined;
-        }
+        if(Mathemathics.isInf(x) || !Number.isInteger(x)){throw new WrongEnsembleError("x is infinite or not integer.")}
 
 
         const neg = (x < 0);
@@ -260,16 +281,29 @@ class Mathemathics{
     }
 
     /**
-     * @param  {...Number} x Les nombres à additionner
-     * @returns {Number} La somme des x
+     * @param  {...Number | ...Reel | ...Complexe} x Les nombres à additionner
+     * @returns {Number  | Complexe} La somme des x (complexe si x est complexe)
      */
     static sumParam(...x) {
-        if(x.find(Number.POSITIVE_INFINITY) != undefined){  //si il trouve +inf dans le tableau
+        if (x.includes(Number.NEGATIVE_INFINITY) && x.includes(Number.POSITIVE_INFINITY)) {throw new LimError("∞-∞");}
+
+        if( x.includes(Number.POSITIVE_INFINITY)){  //si il trouve +∞ dans le tableau
             return Number.POSITIVE_INFINITY;
         }
 
-        if(x.find(Number.NEGATIVE_INFINITY) != undefined){  //si il trouve +inf dans le tableau
+        if(x.includes(Number.NEGATIVE_INFINITY)){  //si il trouve -∞ dans le tableau
             return Number.NEGATIVE_INFINITY;
+        }
+
+
+
+        if (x instanceof Complexe) {
+            let result = new Complexe(0, 0);
+
+            x.forEach(xn => {
+                result.add(xn, true);
+            });
+            return result
         }
 
         let somme = 0; 
@@ -286,11 +320,15 @@ class Mathemathics{
      * @returns {Number} le résultat
      */
     static sumTab(x){
-        if(x.find(Number.POSITIVE_INFINITY) != undefined){  //si il trouve +inf dans le tableau
+        if (x.includes(Number.NEGATIVE_INFINITY) && x.includes(Number.POSITIVE_INFINITY)) {
+            throw new LimError("∞-∞");
+        }
+
+        if(x.includes(Number.POSITIVE_INFINITY)){  //si il trouve +inf dans le tableau
             return Number.POSITIVE_INFINITY;
         }
 
-        if(x.find(Number.NEGATIVE_INFINITY) != undefined){  //si il trouve +inf dans le tableau
+        if(x.includes(Number.NEGATIVE_INFINITY)){  //si il trouve +inf dans le tableau
             return Number.NEGATIVE_INFINITY;
         }
 
@@ -308,14 +346,11 @@ class Mathemathics{
      * @returns {Number} Le produit de tout les x
      */
     static produitParam(...x){
-        if(x.find(Number.POSITIVE_INFINITY) != undefined){  //si il trouve +inf dans le tableau
-            return Number.POSITIVE_INFINITY;
+        if (x.includes(0) && (x.includes(Number.NEGATIVE_INFINITY) || x.includes(Number.POSITIVE_INFINITY))) {  //0*∞
+            throw new LimError("0 * ∞");
         }
 
-        if(x.find(Number.NEGATIVE_INFINITY) != undefined){  //si il trouve +inf dans le tableau
-            return Number.NEGATIVE_INFINITY;
-        }
-
+        if (x.includes(0)) {return 0;}
 
         let product = 1;
         x.forEach(xn => {
@@ -331,13 +366,11 @@ class Mathemathics{
      * @returns {Number} Le produit de tout les x
     */ 
     static produitTab(x){
-        if(x.find(Number.POSITIVE_INFINITY) != undefined){  //si il trouve +inf dans le tableau
-            return Number.POSITIVE_INFINITY;
+        if (x.includes(0) && (x.includes(Number.NEGATIVE_INFINITY) || x.includes(Number.POSITIVE_INFINITY))) {  //0*∞
+            throw new LimError("0 * ∞");
         }
 
-        if(x.find(Number.NEGATIVE_INFINITY) != undefined){  //si il trouve +inf dans le tableau
-            return Number.NEGATIVE_INFINITY;
-        }
+        if (x.includes(0)) {return 0;}
 
         let product = 1;
         x.forEach(xn => {
@@ -366,6 +399,9 @@ class Mathemathics{
             b = b.ToNumber();
         }
 
+        if((a == 0 && Mathemathics.isInf(b)) || (b == 0 && Mathemathics.isInf(a))){ //si on fait 0 * inf
+            throw new LimError("0 * ∞");
+        }
 
         if (!Number.isNaN(a) && !Number.isNaN(b)) {
             return a * b;
@@ -379,29 +415,28 @@ class Mathemathics{
 
     /**
      * Calcule la factorielle de n avec la méthode récursive
-     * @param {Number | Relatif} n
+     * @param {Number | Naturel} n
      * @returns {Number} La factorielle du nombre
      */
     static factorial(n){
         
-        if(n==Number.NEGATIVE_INFINITY){
-            return undefined;
-        }
+        if(n==Number.NEGATIVE_INFINITY){return undefined;}
+        if(n==Number.POSITIVE_INFINITY){return Number.POSITIVE_INFINITY;}
 
-        if(n==Number.POSITIVE_INFINITY){
-            return Number.POSITIVE_INFINITY;
-        }
-        if (n instanceof Relatif || n instanceof Naturel) {
+
+        if (n instanceof Naturel) {
             n = n.value
-        }
+        }else if((Reel.isPartOfThis(n) && !Naturel.isPartOfThis(n)) || n instanceof Complexe){throw new WrongEnsembleError("Les factorielles ne sont définies que dans N");}
 
         if (n==0) {
             return 1;
         }
+
+        let ret = 1;
         for (let m = 1; m <= n; m++) {
-             n *= m;
+             ret *= m;
         }
-        return n;
+        return ret;
     }
 
      /**
@@ -413,6 +448,8 @@ class Mathemathics{
      static truncFloat(x, accuracy = 3){
         if (x instanceof abstractNumber)        {x = x.value;}
         if (accuracy instanceof abstractNumber) {accuracy = accuracy.value}
+        if (x instanceof Complexe || accuracy instanceof Complexe) {throw new WrongEnsembleError()}
+        if(!Number.isInteger(accuracy)){throw new WrongEnsembleError("Accuracy n'est pas entier")}
 
         if (accuracy == Number.POSITIVE_INFINITY) {
             return x;         //Le résultat sera x avec le maximum de décimales qu'il puisse avoir donc lui-même
@@ -436,8 +473,14 @@ class Mathemathics{
      * @returns {Number}
      */
     static round(x, accuracy = 3){
-        if (x instanceof abstractNumber)        {x = x.value;}
+        if (x instanceof abstractNumber){x = x.value;}
+        
         if (accuracy instanceof abstractNumber) {accuracy = accuracy.value}
+        
+        if (x instanceof Complexe || accuracy instanceof Complexe) {throw new WrongEnsembleError()}
+        
+        
+        if(!Number.isInteger(accuracy)){throw new WrongEnsembleError("Accuracy n'est pas entier")}
 
             if (accuracy == Number.POSITIVE_INFINITY) {
                 return x;         //Le résultat sera x avec le maximum de décimales qu'il puisse avoir donc lui-même
@@ -453,7 +496,9 @@ class Mathemathics{
             x /= 10**accuracy;
     
             return x;
+    
     }
+
 
     /**
      * Une fonction puissance (u^x)
@@ -464,6 +509,7 @@ class Mathemathics{
     static expodentielle(u, x){
         if (u instanceof abstractNumber) {u = u.value;}
         if (x instanceof abstractNumber) {x = x.value;}
+        if (x instanceof Complexe) {throw new WrongEnsembleError("x est complexe.")}
 
         if (!Number.isNaN(u)) {
             return u**x;            //si réel
@@ -473,4 +519,63 @@ class Mathemathics{
     }
 }
 
-//export {Mathemathics}
+class MathError extends Error{
+    /**
+     * @param {String} message='' | Le message de l'erreur
+     * @param {String} cause="Wrong Math" | La cause de l'erreur (ne pas confondre avec option.cause)
+     * @param {Object | undefined} options=undefined |  les options à passer au constructeur de Error
+     */
+    constructor(message = '', cause = 'Wrong math', options = undefined){
+        super(message, options);
+        this.name = "MathError";
+        this.message = message;
+        this.cause = cause;
+    }
+
+    /**
+     * @returns {String}
+     */
+    toString(){
+        if (this.cause == undefined || this.cause == '') {return this.name + ': ' + this.message;}
+        if (this.name == undefined || this.name == '')   {return this.message + " |  cause: " + this.cause;}
+        if (this.message == '')                          {return this.name + ": (cause: " + this.cause + ')';}
+
+        return this.name + ': ' + this.message + " |  cause: " + this.cause;
+    }
+}
+
+class WrongEnsembleError extends MathError{
+    /**
+     * @param {String} message='' | Le message de l'erreur
+     * @param {Object | undefined} options=undefined |  les options à passer au constructeur de Error
+     */
+    constructor(message, options = undefined){
+        super(message, "Nombre d'un mauvais ensemble fournit", options);
+    
+        this.name = "WrongEnsembleError";
+    }
+}
+
+class OperationError extends MathError{
+    /**
+     * @param {String} message='' | Le message de l'erreur
+     * @param {Object | undefined} options=undefined |  les options à passer au constructeur de Error
+     */
+    constructor(message, options = undefined){
+        super(message, "Opération interdite ou indéfinie dans l'ensemble courant", options);
+        this.name = "OperationError";
+    }
+}
+
+/**
+ * Représente une erreur relative aux limite (forme inéterminée par exemple)
+ */
+class LimError extends MathError{
+    constructor(message, options = undefined){
+        super(message, "forme indéterminée", option);
+
+        this.name = "LimError";
+    }
+}
+
+//export {Mathemathics, MathError, OperationError, WrongEnsembleError}
