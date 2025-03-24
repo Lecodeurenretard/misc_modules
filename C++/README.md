@@ -1,0 +1,1 @@
+The [install script](install.sh) installs the libraries in your system (require root privilege).
